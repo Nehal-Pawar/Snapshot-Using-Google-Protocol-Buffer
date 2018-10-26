@@ -31,7 +31,7 @@ while 1:
 
 	# Receive the message
 	msg = clientSocket.recv(1024)
-	bankdetails = bank_pb2.BranchMessage
+	bankdetails = bank_pb2.BranchMessage()
 
 	bankdetails.ParseFromString(msg)
 
