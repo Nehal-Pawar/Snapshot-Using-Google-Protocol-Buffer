@@ -6,6 +6,33 @@ sys.path.append('/home/vchaska1/protobuf/protobuf-3.5.1/python')
 
 
 import bank_pb2
+
+
+
+def Threading(clientSocket, clientAddress):
+	# Receive the message
+	msg = clientSocket.recv(1024)
+	bankdetails = bank_pb2.BranchMessage()
+
+	bankdetails.ParseFromString(msg)
+
+
+	
+	print bankdetails
+	if bankdetails.HasField('init_branch'):
+		print 'message is init branch'
+		
+
+	response = 'Message recieved to ' + sys.argv[1]
+	# Send the response to client
+	clientSocket.send(response)
+
+	# Close the client socket
+	clientSocket.close()
+
+
+
+
 # No command line arguments needed
 if len(sys.argv) != 4:
 	print("Usage:", sys.argv[0], "Branch name", "Port number", "Maximum Interval in ms")
@@ -29,27 +56,8 @@ while 1:
 	# Accepting the client request
 	clientSocket, clientAddress = serverSocket.accept()
 
-	# Receive the message
-	msg = clientSocket.recv(1024)
-	bankdetails = bank_pb2.BranchMessage()
 
-	bankdetails.ParseFromString(msg)
-
-
+	thread.start_new_thread(Threading,(clientSocket, clientAddress))
 	
-	print bankdetails
-	if bankdetails.HasField('init_branch'):
-		print 'message is init branch'
-		
-
-	response = 'Message recieved to ' + sys.argv[1]
-	# Send the response to client
-	clientSocket.send(response)
-
-	# Close the client socket
-	clientSocket.close()
-	
-
-
 
 serverSocket.close()
