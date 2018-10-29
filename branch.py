@@ -36,7 +36,11 @@ while 1:
 	bankdetails.ParseFromString(msg)
 
 
+	
 	print bankdetails
+	if bankdetails.HasField('init_branch'):
+		print 'message is init branch'
+		
 
 	response = 'Message recieved to ' + sys.argv[1]
 	# Send the response to client
@@ -45,5 +49,7 @@ while 1:
 	# Close the client socket
 	clientSocket.close()
 	
+
+
 
 serverSocket.close()
