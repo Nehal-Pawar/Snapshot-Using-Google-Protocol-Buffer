@@ -39,11 +39,11 @@ def initBranch(fname,total_balance):
         for each in f:
             
           ip= each.split()[1]      
-          port=int(each.split()[2])
+          port=(each.split()[2])
           inport=int(port.strip('\0'))
           s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
           #print ip,inport
-          s.connect((ip,4566))
+          s.connect((ip,int(inport)))
           s.send(BR.SerializeToString())
           print s.recv(1024)
           
