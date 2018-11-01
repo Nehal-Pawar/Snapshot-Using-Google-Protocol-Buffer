@@ -21,9 +21,12 @@ class MethodsREQ:
     transfer.dst_branch = 'branch3'
     transfer.money = 50
     self.balance = self.balance - transfer.money
+    #self.branchlist[0].send("zxcv jo bhiui : " +sys.argv[1])
+    #self.branchlist[1].send("zxcv jo bhiui : " +sys.argv[1])
+    print 'this is getting printed for '+ str(transfer)
+    print self.branchlist[0].stillconnected()
     self.branchlist[0].send("zxcv jo bhiui : " +sys.argv[1])
-    self.branchlist[1].send("zxcv jo bhiui : " +sys.argv[1])
-    self.branchlist[2].send("zxcv jo bhiui : " +sys.argv[1])
+
     #print 'this is running in tansfer msg methoid ' + str(transfer)
     
   def connect2(self,ip,port):
@@ -32,20 +35,21 @@ class MethodsREQ:
 	 #print ip,inport
 	 s.connect((ip,int(port)))
 	 s.send("received zxcv from : "+sys.argv[1])
+   print s.stillconnected()
 	 self.branchlist.append(s)
 	 #print s.recv(1024)'
   
   def Threading(self,clientSocket, clientAddress):
   	# Receive the message
   	msg = clientSocket.recv(1024)
-  	print msg
+  	#print msg
   	bankdetails = bank_pb2.BranchMessage()
   	if "zxcv" in msg:
   		print msg
   		return
   	bankdetails.ParseFromString(msg)
   	
-  	#print bankdetails
+  	print bankdetails
   
   	if bankdetails.HasField('init_branch'):
   		self.balance =  bankdetails.init_branch.balance
@@ -61,7 +65,7 @@ class MethodsREQ:
   		time.sleep(2)     
   		if sys.argv[1]!= 'branch2':
   			self.Transfer()
-	#print self.branchlist
+	print self.branchlist
   
   	if bankdetails.HasField('transfer'):
   		print bankdetails.transfer.src_branch
@@ -98,7 +102,7 @@ server_port = serverSocket.getsockname()[1]
 print host_name + ' listening on port ' + str(server_port)
 
 abc=MethodsREQ()
-serverSocket.listen(1)
+serverSocket.listen(10)
 
 while 1:
 	# Accepting the client request

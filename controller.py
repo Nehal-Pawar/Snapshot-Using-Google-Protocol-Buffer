@@ -7,7 +7,7 @@ import socket
 
 
 def initBranch(fname,total_balance):
-  fname='testfile.txt'
+  # fname='testfile.txt'
   #file = open(fname, 'r') 
   #branch= file.read() 
   count=0
