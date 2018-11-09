@@ -57,7 +57,7 @@ class BRANCH:
 		time.sleep(2)
 		
 		i=1
-		while 1:
+		while i<=50:
 			sleep_time = int(sys.argv[3]) / 1000.0
 			random_sleep_time = random.uniform(0, sleep_time)
 			time.sleep(random_sleep_time)
@@ -157,6 +157,12 @@ class BRANCH:
 				print 'starting transfer thread'
 				thread.start_new_thread(self.init_transfer,())
 				    		
+			elif bankdetails.HasField('init_snapshot'):
+				print bankdetails
+				response = 'Init Snapshot Message received to ' + sys.argv[1]
+
+				# Send the response to client
+			  	clientSocket.send(response)
 
 
 

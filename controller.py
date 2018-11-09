@@ -3,10 +3,15 @@ sys.path.append('/home/vchaska1/protobuf/protobuf-3.5.1/python')
 
 import bank_pb2
 import socket
+import time
 
+import random
+
+
+branches = {}
+branch_name = []
 
 def initBranch(fname,total_balance):
-  
   
 	count=0
 	BR = bank_pb2.BranchMessage()
@@ -27,6 +32,14 @@ def initBranch(fname,total_balance):
 			branch1.ip=ip
 			branch1.port=inport
 			count=count+1
+
+
+			temp_list = []
+			temp_list.append(ip)
+			temp_list.append(inport)
+			branches[line.split()[0]] = temp_list
+			
+			branch_name.append(line.split()[0])
   
 	f.close()
 
@@ -58,7 +71,33 @@ def initBranch(fname,total_balance):
           
           
 	f.close()
-  
+
+
+	
+	
+
+
+
+
+def initSnapshot():
+	
+	snapshot_id = 1
+	branch = random.choice(branch_name)
+	ip = branches[branch][0]
+	port = branches[branch][1]
+	
+	branch_message = bank_pb2.BranchMessage()
+	init_snapshot = branch_message.init_snapshot
+	init_snapshot.snapshot_id = snapshot_id = 1
+	
+
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+	s.connect((ip,int(port)))
+	
+	s.send(branch_message.SerializeToString())
+	print s.recv(1024)
+
+	s.close()
 
 if __name__ == '__main__':
 
@@ -71,3 +110,5 @@ if __name__ == '__main__':
 	        fname = sys.argv[2]
 
 	initBranch(fname,total_balance)
+	time.sleep(5)
+	initSnapshot()
