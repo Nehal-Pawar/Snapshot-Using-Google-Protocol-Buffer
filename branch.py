@@ -29,6 +29,8 @@ class BRANCH:
 		self.initial_balance = 0
 		self.conn_count = 0
 		self.count_lock = Lock()
+                self.snap_lock=Lock()
+                self.temp_dict_lock=Lock()
 		self.record=False
 		
 		
@@ -52,10 +54,14 @@ class BRANCH:
 				if self.record == True:
 					recv_channel=trans_msg.transfer.src_branch + '_to_' + trans_msg.transfer.dst_branch
 					if recv_channel in self.temp_dict.keys():
-						self.temp_dict[recv_channel].append(trans_msg.transfer.money)
+					    self.temp_dict_lock.acquire()	
+                                            self.temp_dict[recv_channel].append(trans_msg.transfer.money)
+                                            self.temp_dict_lock.release()
 					else:
+                                                self.temp_dict_lock.acquire()
 						self.temp_dict[recv_channel] = []
 						self.temp_dict[recv_channel].append(trans_msg.transfer.money)
+                                                self.temp_dict_lock.release()	
 				print "Transfer from " + trans_msg.transfer.src_branch + " to " + trans_msg.transfer.dst_branch + " Balance = " + str(self.balance)
 			self.receive_amt_Lock.release()
 
@@ -196,12 +202,13 @@ class BRANCH:
 				recv_channel = bankdetails.marker.src_branch + '_to_' + bankdetails.marker.dst_branch
 				if not snap_id in self.snap.keys():
 					print 'First marker message with snap id ' + str(snap_id)
-					
+				        self.snap_lock.acquire()	
 					self.snap[snap_id] = [self.balance]
 					
 					self.temp_dict[recv_channel] = []
 					self.snap[snap_id].append(copy.copy(self.temp_dict[recv_channel]))
-					
+					self.snap_lock.release()
+
 					print self.snap
                                         self.record=True
 					for branch_name in self.branches:
@@ -219,7 +226,9 @@ class BRANCH:
 					#self.record=False
 					#print self.temp_dict
                                         print self.temp_dict[recv_channel]
+                                        self.snap_lock.acquire()	
 					self.snap[snap_id].append(copy.copy(self.temp_dict[recv_channel]))
+                                        self.snap_lock.release()
 					print self.snap
 
 	  	# Close the client socket
