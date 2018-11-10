@@ -4,6 +4,7 @@ import sys
 import thread
 import random
 import time
+import copy
 import threading
 from threading import Lock
 
@@ -18,7 +19,7 @@ class BRANCH:
 	balance = 0
 	sender_sockets = {} # receiver branch name : ip port socket_object
 	snap = {}
-	
+	temp_dict={}
 	
 	def __init__(self):
 		self.balance = 0
@@ -29,7 +30,7 @@ class BRANCH:
 		self.conn_count = 0
 		self.count_lock = Lock()
 		self.record=False
-		self.temp_dict={}
+		
 		
 	def Amount_Receive(self,clientSocket, clientAddress):
 		#print 'In amount receive for ' + str(clientAddress)
@@ -195,13 +196,14 @@ class BRANCH:
 				recv_channel = bankdetails.marker.src_branch + '_to_' + bankdetails.marker.dst_branch
 				if not snap_id in self.snap.keys():
 					print 'First marker message with snap id ' + str(snap_id)
-					self.record=True
+					
 					self.snap[snap_id] = [self.balance]
 					
 					self.temp_dict[recv_channel] = []
-					self.snap[snap_id].append(self.temp_dict[recv_channel])
+					self.snap[snap_id].append(copy.copy(self.temp_dict[recv_channel]))
 					
 					print self.snap
+                                        self.record=True
 					for branch_name in self.branches:
 						sender_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 						sender_socket.connect((self.branches[branch_name][0],int(self.branches[branch_name][1])))
@@ -216,7 +218,8 @@ class BRANCH:
 					#add temp_dict
 					#self.record=False
 					#print self.temp_dict
-					self.snap[snap_id].append(self.temp_dict)
+                                        print self.temp_dict[recv_channel]
+					self.snap[snap_id].append(copy.copy(self.temp_dict[recv_channel]))
 					print self.snap
 
 	  	# Close the client socket
