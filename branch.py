@@ -17,8 +17,9 @@ class BRANCH:
 	rec_sockets = {}
 	balance = 0
 	sender_sockets = {} # receiver branch name : ip port socket_object
-	#balance_Lock = Lock()
-		
+	snap = {}
+	
+	
 	def __init__(self):
 		self.balance = 0
 		self.balance_Lock = Lock()
@@ -27,7 +28,9 @@ class BRANCH:
 		self.initial_balance = 0
 		self.conn_count = 0
 		self.count_lock = Lock()
-	
+		self.record=False
+		self.temp_dict={}
+		
 	def Amount_Receive(self,clientSocket, clientAddress):
 		#print 'In amount receive for ' + str(clientAddress)
 		while 1:
@@ -41,11 +44,17 @@ class BRANCH:
 			if trans_msg.HasField('transfer'):
 				#print 'wohoo able to get money'
 				#print trans_msg
-
+				
 				self.balance_Lock.acquire()
 				self.balance += trans_msg.transfer.money
 				self.balance_Lock.release()
-
+				if self.record == True:
+					recv_channel=trans_msg.transfer.src_branch + '_to_' + trans_msg.transfer.dst_branch
+					if recv_channel in self.temp_dict.keys():
+						self.temp_dict[recv_channel].append(trans_msg.transfer.money)
+					else:
+						self.temp_dict[recv_channel] = []
+						self.temp_dict[recv_channel].append(trans_msg.transfer.money)
 				print "Transfer from " + trans_msg.transfer.src_branch + " to " + trans_msg.transfer.dst_branch + " Balance = " + str(self.balance)
 			self.receive_amt_Lock.release()
 
@@ -57,7 +66,7 @@ class BRANCH:
 		time.sleep(2)
 		
 		i=1
-		while i<=50:
+		while i<=100:
 			sleep_time = int(sys.argv[3]) / 1000.0
 			random_sleep_time = random.uniform(0, sleep_time)
 			time.sleep(random_sleep_time)
@@ -158,29 +167,60 @@ class BRANCH:
 				thread.start_new_thread(self.init_transfer,())
 				    		
 			elif bankdetails.HasField('init_snapshot'):
-				print bankdetails
+				#print bankdetails
 				response = 'Init Snapshot Message received to ' + sys.argv[1]
-
 				# Send the response to client
 			  	clientSocket.send(response)
-
-
-
-
-
-
-
-
-
-
-
+			  	print 'Init Snapshot Message received'
+			  	# store local balance 
+				self.snap[bankdetails.init_snapshot.snapshot_id] = [self.balance]
+				self.record=True
+				print self.snap
+				#send marker to all      //try to make method
+				for branch_name in self.branches:
+					sender_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+					sender_socket.connect((self.branches[branch_name][0],int(self.branches[branch_name][1])))
+					# Generating a marker message
+					branch_message = bank_pb2.BranchMessage()
+					marker_message = branch_message.marker
+					marker_message.src_branch = sys.argv[1]
+					marker_message.dst_branch = branch_name
+					marker_message.snapshot_id = bankdetails.init_snapshot.snapshot_id
+					sender_socket.send(branch_message.SerializeToString())
+				
+			elif bankdetails.HasField('marker'):
+				time.sleep(1)
+				print bankdetails			
+				snap_id = bankdetails.marker.snapshot_id
+				recv_channel = bankdetails.marker.src_branch + '_to_' + bankdetails.marker.dst_branch
+				if not snap_id in self.snap.keys():
+					print 'First marker message with snap id ' + str(snap_id)
+					self.record=True
+					self.snap[snap_id] = [self.balance]
+					
+					self.temp_dict[recv_channel] = []
+					self.snap[snap_id].append(self.temp_dict[recv_channel])
+					
+					print self.snap
+					for branch_name in self.branches:
+						sender_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+						sender_socket.connect((self.branches[branch_name][0],int(self.branches[branch_name][1])))
+						# Generating a marker message
+						branch_message = bank_pb2.BranchMessage()
+						marker_message = branch_message.marker
+						marker_message.src_branch = sys.argv[1]
+						marker_message.dst_branch = branch_name
+						marker_message.snapshot_id = snap_id
+						sender_socket.send(branch_message.SerializeToString())
+				else:
+					#add temp_dict
+					#self.record=False
+					#print self.temp_dict
+					self.snap[snap_id].append(self.temp_dict)
+					print self.snap
 
 	  	# Close the client socket
 	  	#clientSocket.close()
-
-
-
-
 
 
 
