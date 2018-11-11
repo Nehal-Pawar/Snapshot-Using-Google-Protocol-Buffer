@@ -82,22 +82,56 @@ def initBranch(fname,total_balance):
 def initSnapshot():
 	
 	snapshot_id = 1
-	branch = random.choice(branch_name)
-	ip = branches[branch][0]
-	port = branches[branch][1]
+		
+	while snapshot_id <= 10:
+		branch = random.choice(branch_name)
+		ip = branches[branch][0]
+		port = branches[branch][1]
 	
+		branch_message = bank_pb2.BranchMessage()
+		init_snapshot = branch_message.init_snapshot
+		init_snapshot.snapshot_id = snapshot_id
+	
+
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+		s.connect((ip,int(port)))
+	
+		s.send(branch_message.SerializeToString())
+		print s.recv(1024)
+
+		s.close()
+	
+		RetrieveSnapshot(snapshot_id)
+
+
+		snapshot_id += 1
+
+
+
+
+def RetrieveSnapshot(id):
+	time.sleep(3)
+	#Create Retrieve Message
 	branch_message = bank_pb2.BranchMessage()
-	init_snapshot = branch_message.init_snapshot
-	init_snapshot.snapshot_id = snapshot_id = 1
-	
+	retrieve_snapshot = branch_message.retrieve_snapshot
+	retrieve_snapshot.snapshot_id = id
 
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-	s.connect((ip,int(port)))
-	
-	s.send(branch_message.SerializeToString())
-	print s.recv(1024)
+	print "Snapshot id ", id
+	for branch_name in branches:
+		
+		ip = branches[branch_name][0]
+		port = branches[branch_name][1]
+		
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+		s.connect((ip,int(port)))
+		s.send(branch_message.SerializeToString())
+		snapshot = s.recv(1024)
+		recv_message = bank_pb2.BranchMessage()
+		recv_message.ParseFromString(snapshot)
+		print 'Snapshot returned from ' + branch_name + " : " + str(recv_message)
+		s.close()
+		
 
-	s.close()
 
 if __name__ == '__main__':
 
