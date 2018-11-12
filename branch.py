@@ -45,7 +45,7 @@ class BRANCH:
 		while 1:
 			
 			
-			msg = clientSocket.recv(1024)
+			msg = clientSocket.recv(10000)
 			self.receive_amt_Lock.acquire()
 			trans_msg = bank_pb2.BranchMessage()
 
@@ -69,7 +69,7 @@ class BRANCH:
 						self.temp_dict[recv_channel] = []
 						self.temp_dict[recv_channel].append(trans_msg.transfer.money)
                                                 self.temp_dict_lock.release()	
-				#print "Transfer from " + trans_msg.transfer.src_branch + " to " + trans_msg.transfer.dst_branch + " Balance = " + str(self.balance)
+				print "Received money from " + trans_msg.transfer.src_branch + " Balance = " + str(self.balance)
 			self.receive_amt_Lock.release()
 
 
@@ -78,7 +78,7 @@ class BRANCH:
 		
 		time.sleep(2)
 		
-		i=1
+		#i=1
 		while 1:
 			if self.stop_transfer[sys.argv[1]] == False:
 				sleep_time = int(sys.argv[3]) / 1000.0
@@ -104,16 +104,16 @@ class BRANCH:
 					# Send transfer message
 	
 					socket_object = self.sender_sockets[dest_branch][2]
-					#print socket_object.stillconnected()
+					
 					socket_object.send(branch_message.SerializeToString())
-					#print 'i = ' + str(i) +' Trasfer to ' + dest_branch + ' Current balance ' + str(self.balance)
-					i += 1
+					print 'Sent money to ' + dest_branch + ' Current balance ' + str(self.balance)
+					#i += 1
 				self.send_amt_Lock.release()
 
 
 	def Threading_Receive(self, clientSocket, clientAddress):
 	  	# Receive the message
-	  	msg = clientSocket.recv(1024)
+	  	msg = clientSocket.recv(100000)
 
 		if "Connection" in msg:
 			
@@ -130,7 +130,6 @@ class BRANCH:
 
 			self.rec_sockets[conn_branch] = temp_list
 			
-			#thread.start_new_thread(self.Amount_Receive,(clientSocket, clientAddress))
 
 
 			thread = threading.Thread(target = self.Amount_Receive, args = (clientSocket, clientAddress))
@@ -189,7 +188,7 @@ class BRANCH:
 					self.sender_sockets[branch_name] = list1
 						
 				
-				print 'starting transfer thread'
+				
 				#thread.start_new_thread(self.init_transfer,())
 
 				thread = threading.Thread(target = self.init_transfer)
@@ -210,7 +209,7 @@ class BRANCH:
 
 				#Stop sending transfer messages
 				self.stop_transfer[sys.argv[1]] = True
-				#print 'stopping transfer messages'
+				
 
 			  	# store local balance 
 				#self.balance_Lock.acquire()
@@ -222,7 +221,7 @@ class BRANCH:
 				self.local_balance_Lock.release()
 
 
-				print self.snap
+				
 				#send marker to all      //try to make method
 				for branch_name in self.branches:
 					sender_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -239,26 +238,26 @@ class BRANCH:
 					self.record[branch_name] = True
 
 
-				print 'starting transfer messages'
+				
 				self.stop_transfer[sys.argv[1]] = False
 				
 			elif bankdetails.HasField('marker'):
 				
-				#print bankdetails			
+				
 				snap_id = bankdetails.marker.snapshot_id
 				#recv_channel = bankdetails.marker.src_branch + '_to_' + bankdetails.marker.dst_branch
 				recv_channel = bankdetails.marker.src_branch
 
 				#Stop sending transfer messages
 				self.stop_transfer[sys.argv[1]] = True
-				print 'stopping transfer messages'
+				
 
 				# First Marker
 				if not snap_id in self.snap.keys():
 
 					
 
-					print 'First marker message with snap id ' + str(snap_id)
+					
 					#time.sleep(1)
 
 					# Record balance and incoming state as empty
@@ -278,7 +277,7 @@ class BRANCH:
 					self.snap[snap_id].append([recv_channel , 0])
 					self.snap_lock.release()
 
-					print 'snap ', self.snap
+					
                                         
 					for branch_name in self.branches:
 						sender_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -301,7 +300,7 @@ class BRANCH:
 					self.snap_lock.acquire()
 					if recv_channel not in self.temp_dict:
 						self.temp_dict[recv_channel] = []
-                                        print "temp_dict ", self.temp_dict[recv_channel]
+                                        
 
 
 					if self.temp_dict[recv_channel]:
@@ -312,12 +311,12 @@ class BRANCH:
 					
                                         	
                                         self.snap_lock.release()
-					print "snap ", self.snap
+					
 
 
 				#Start sending transfer messages
 				self.stop_transfer[sys.argv[1]] = False
-				#print 'starting transfer messages'
+				
 
 
 			elif bankdetails.HasField('retrieve_snapshot'):

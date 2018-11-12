@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 sys.path.append('/home/vchaska1/protobuf/protobuf-3.5.1/python')
 
@@ -42,7 +43,7 @@ def initBranch(fname,total_balance):
 
   
     
-	init_branch.balance = int(total_balance) / count
+	init_branch.balance = int(int(total_balance) / count)
     
 	print "Sending init_branch message to all branches"
 	with open(fname) as f:
@@ -57,7 +58,7 @@ def initBranch(fname,total_balance):
 				s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 				s.connect((ip,int(inport)))
 				s.send(BR.SerializeToString())
-				print s.recv(1024)
+				print s.recv(100000)
 
 				s.close()
 			except:
@@ -72,7 +73,7 @@ def initSnapshot():
 	
 	snapshot_id = 1
 		
-	while snapshot_id <= 10:
+	while 1:
 		branch = random.choice(branch_name)
 		ip = branches[branch][0]
 		port = branches[branch][1]
@@ -85,7 +86,7 @@ def initSnapshot():
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 		s.connect((ip,int(port)))	
 		s.send(branch_message.SerializeToString())
-		print s.recv(1024)
+		print s.recv(10000)
 		s.close()
 	
 		RetrieveSnapshot(snapshot_id)
@@ -113,7 +114,7 @@ def RetrieveSnapshot(id):
 		recv_message.ParseFromString(snapshot)
 		
 		return_message = recv_message.return_snapshot.local_snapshot
-		#print 'Snapshot returned from ' + b_name + " : " + str(recv_message)
+		
 		output = b_name + ": " + str(return_message.balance) + ", "
 		
 		output_list = []
