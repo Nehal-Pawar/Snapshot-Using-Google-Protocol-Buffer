@@ -127,7 +127,12 @@ class BRANCH:
 
 			self.rec_sockets[conn_branch] = temp_list
 			
-			thread.start_new_thread(self.Amount_Receive,(clientSocket, clientAddress))
+			#thread.start_new_thread(self.Amount_Receive,(clientSocket, clientAddress))
+
+
+			amt_rec_thread = threading.Thread(target = self.Amount_Receive, args = (clientSocket, clientAddress))
+			amt_rec_tranfer.daemon = True
+			amt_rec_tranfer.start()
 
 			
 		else:
@@ -181,7 +186,14 @@ class BRANCH:
 						
 				
 				print 'starting transfer thread'
-				thread.start_new_thread(self.init_transfer,())
+				#thread.start_new_thread(self.init_transfer,())
+
+				init_tranfer_thread = threading.Thread(target = self.init_transfer)
+				init_tranfer.daemon = True
+				init_tranfer.start()
+
+
+
 				    		
 			elif bankdetails.HasField('init_snapshot'):
 				#print bankdetails
@@ -357,6 +369,11 @@ if __name__ == '__main__':
 		clientSocket, clientAddress = serverSocket.accept()
 		#print 'printing socket and addr of incoming messages ' + " "+ str(clientSocket) + " "+ str(clientAddress)
 		
-		thread.start_new_thread(branch_object.Threading_Receive,(clientSocket, clientAddress))
+
+		# starting daemon threads
+                recv_thread = threading.Thread(target = branch_object.Threading_Receive, args=(clientSocket, clientAddress))
+                recv_thread.daemon = True
+                recv_thread.start()
+		#thread.start_new_thread(branch_object.Threading_Receive,(clientSocket, clientAddress))
 
 	serverSocket.close()
