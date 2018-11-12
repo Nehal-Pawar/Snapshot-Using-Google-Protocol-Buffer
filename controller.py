@@ -16,6 +16,7 @@ def initBranch(fname,total_balance):
 	count=0
 	BR = bank_pb2.BranchMessage()
 
+	#store branch name, ip , port
 	with open(fname) as f:
 		for line in f:  
 			ip = line.split()[1]    
@@ -42,9 +43,10 @@ def initBranch(fname,total_balance):
 	f.close()
 
   
-    
+    	#initial balance of branches
 	init_branch.balance = int(int(total_balance) / count)
     
+	# Sending init branch message
 	print "Sending init_branch message to all branches"
 	with open(fname) as f:
 		for line in f:
@@ -78,11 +80,12 @@ def initSnapshot():
 		ip = branches[branch][0]
 		port = branches[branch][1]
 	
+		# Create init snapshot message
 		branch_message = bank_pb2.BranchMessage()
 		init_snapshot = branch_message.init_snapshot
 		init_snapshot.snapshot_id = snapshot_id
 	
-
+		#send init snapshot 
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 		s.connect((ip,int(port)))	
 		s.send(branch_message.SerializeToString())
@@ -124,7 +127,7 @@ def RetrieveSnapshot(id):
 		for i in range(0,len(output_list)):
 			output = output + output_list[i] + ': ' + str(return_message.channel_state[i]) + ', '
 		
-		output = output[:-1]
+		output = output[:-2]
 		print output
 		s.close()
 		

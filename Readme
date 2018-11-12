@@ -1,0 +1,23 @@
+Programming languages and tools used:
+Python
+Protocol Buffer
+
+To run branch.py :
+python branch.py branch1 9090 400
+
+To run controller.py:
+python controller.py 4000 branches.txt
+
+
+Tasks performed by Vidisha:
+Implemented retrieve_snapshot, return_snapshot 
+
+
+Tasks performed by Nehal: 
+Implemented init_branch, init_snapshot
+
+Implementation of Transfer and Marker messages are done by both members.
+
+
+Completion Status: Completed and working
+
