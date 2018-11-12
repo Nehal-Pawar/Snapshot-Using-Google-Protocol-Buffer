@@ -7,6 +7,7 @@ import time
 import copy
 import threading
 from threading import Lock
+from threading import Thread
 
 sys.path.append('/home/vchaska1/protobuf/protobuf-3.5.1/python')
 
@@ -130,9 +131,9 @@ class BRANCH:
 			#thread.start_new_thread(self.Amount_Receive,(clientSocket, clientAddress))
 
 
-			amt_rec_thread = threading.Thread(target = self.Amount_Receive, args = (clientSocket, clientAddress))
-			amt_rec_tranfer.daemon = True
-			amt_rec_tranfer.start()
+			thread = threading.Thread(target = self.Amount_Receive, args = (clientSocket, clientAddress))
+			thread.daemon = True
+			thread.start()
 
 			
 		else:
@@ -188,9 +189,9 @@ class BRANCH:
 				print 'starting transfer thread'
 				#thread.start_new_thread(self.init_transfer,())
 
-				init_tranfer_thread = threading.Thread(target = self.init_transfer)
-				init_tranfer.daemon = True
-				init_tranfer.start()
+				thread = threading.Thread(target = self.init_transfer)
+				thread.daemon = True
+				thread.start()
 
 
 
@@ -371,9 +372,9 @@ if __name__ == '__main__':
 		
 
 		# starting daemon threads
-                recv_thread = threading.Thread(target = branch_object.Threading_Receive, args=(clientSocket, clientAddress))
-                recv_thread.daemon = True
-                recv_thread.start()
+                thread = threading.Thread(target = branch_object.Threading_Receive, args=(clientSocket, clientAddress))
+                thread.daemon = True
+                thread.start()
 		#thread.start_new_thread(branch_object.Threading_Receive,(clientSocket, clientAddress))
 
 	serverSocket.close()
