@@ -4,7 +4,6 @@ sys.path.append('/home/vchaska1/protobuf/protobuf-3.5.1/python')
 import bank_pb2
 import socket
 import time
-
 import random
 
 
@@ -15,22 +14,20 @@ def initBranch(fname,total_balance):
   
 	count=0
 	BR = bank_pb2.BranchMessage()
-  
-  
+
 	with open(fname) as f:
 		for line in f:  
-        
-			#print line
 			ip = line.split()[1]    
-			port = line.split()[2]  
-			inport=int(port.strip('\0'))      
-			bank=BR.init_branch
+			#port = line.split()[2]  
+			inport= int(line.split()[2].strip('\0'))      
+			
+			init_branch = BR.init_branch
 
-			branch1=bank.all_branches.add()
+			branch = init_branch.all_branches.add()
 
-			branch1.name=line.split()[0]
-			branch1.ip=ip
-			branch1.port=inport
+			branch.name=line.split()[0]
+			branch.ip=ip
+			branch.port=inport
 			count=count+1
 
 
@@ -45,8 +42,9 @@ def initBranch(fname,total_balance):
 
   
     
-	bank.balance = int(total_balance) / count
+	init_branch.balance = int(total_balance) / count
     
+	print "Sending init_branch message to all branches"
 	with open(fname) as f:
 		for line in f:
 	
@@ -58,8 +56,6 @@ def initBranch(fname,total_balance):
 
 				s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 				s.connect((ip,int(inport)))
-				ip, port = s.getsockname()
-				print 'socket : ' + str(s) + ' ip : ' + str(ip) + ' port is ' + str(port)
 				s.send(BR.SerializeToString())
 				print s.recv(1024)
 
@@ -68,14 +64,7 @@ def initBranch(fname,total_balance):
 				print "Not able to connect to " + line + " " +str(sys.exc_info()[0])
 				sys.exit(0)
 
-          
-          
 	f.close()
-
-
-	
-	
-
 
 
 
@@ -94,19 +83,13 @@ def initSnapshot():
 	
 
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-		s.connect((ip,int(port)))
-	
+		s.connect((ip,int(port)))	
 		s.send(branch_message.SerializeToString())
 		print s.recv(1024)
-
 		s.close()
 	
 		RetrieveSnapshot(snapshot_id)
-
-
 		snapshot_id += 1
-
-
 
 
 def RetrieveSnapshot(id):
@@ -116,19 +99,32 @@ def RetrieveSnapshot(id):
 	retrieve_snapshot = branch_message.retrieve_snapshot
 	retrieve_snapshot.snapshot_id = id
 
-	print "Snapshot id ", id
-	for branch_name in branches:
+	print "snapshot_id: ", id
+	for b_name in branch_name:
 		
-		ip = branches[branch_name][0]
-		port = branches[branch_name][1]
+		ip = branches[b_name][0]
+		port = branches[b_name][1]
 		
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 		s.connect((ip,int(port)))
 		s.send(branch_message.SerializeToString())
-		snapshot = s.recv(1024)
+		snapshot = s.recv(100000)
 		recv_message = bank_pb2.BranchMessage()
 		recv_message.ParseFromString(snapshot)
-		print 'Snapshot returned from ' + branch_name + " : " + str(recv_message)
+		
+		return_message = recv_message.return_snapshot.local_snapshot
+		#print 'Snapshot returned from ' + b_name + " : " + str(recv_message)
+		output = b_name + ": " + str(return_message.balance) + ", "
+		
+		output_list = []
+		for name in branch_name:
+			if name != b_name:
+				output_list.append(name+'->'+b_name)
+		for i in range(0,len(output_list)):
+			output = output + output_list[i] + ': ' + str(return_message.channel_state[i]) + ', '
+		
+		output = output[:-1]
+		print output
 		s.close()
 		
 
